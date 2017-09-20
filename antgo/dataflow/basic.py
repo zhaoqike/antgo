@@ -14,6 +14,7 @@ from antgo.dataflow.dataflow_server import *
 from antgo import config
 from contextlib import contextmanager
 from antgo.utils import logger
+import traceback
 
 
 class Sample(object):
@@ -72,6 +73,8 @@ def safe_recorder_manager(recorder):
     yield recorder
   except:
     logger.error('error in custom callback (training_process or infer_process)')
+    traceback.print_stack()
+    traceback.print_exc()
     recorder.close()
     raise RuntimeError
   

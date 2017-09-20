@@ -129,3 +129,10 @@ def get_tqdm_kwargs(**kwargs):
         default['mininterval'] = 60
     default.update(kwargs)
     return default
+
+
+def get_sort_index(lst, reverse=False):
+    lst = [(lst[i], i) for i in range(len(lst))]
+    sort_lst = sorted(lst, reverse=reverse)
+    index = list(map(lambda value_index: value_index[1], sort_lst))
+    return index

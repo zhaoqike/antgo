@@ -9,6 +9,7 @@ import numpy as np
 from antgo.task.task import *
 from antgo.measures.base import *
 from antgo.dataflow.common import *
+from antgo.utils.utils import get_sort_index
 
 
 class AntPixelAccuracySeg(AntMeasure):
@@ -28,8 +29,10 @@ class AntPixelAccuracySeg(AntMeasure):
 
         if label is not None:
             data = zip(data, label)
-
+        val_list = []
         for predict, gt in data:
+            single_nii = np.zeros((1, classes_num))
+            single_ti = np.zeros((1, classes_num))
             gt_labels = set(gt.flatten())
             for l in gt_labels:
                 l = int(l)
@@ -37,14 +40,21 @@ class AntPixelAccuracySeg(AntMeasure):
                     continue
 
                 p = np.where(gt == l)
+                single_ti[l - 1] += len(p[0])
                 sum_ti[l - 1] += len(p[0])
 
                 predicted_l = predict[p]
                 nii = len(np.where(predicted_l == l)[0])
+                single_nii[l - 1] += nii
                 sum_nii[l - 1] += nii
-
+            single_val = np.sum(single_nii) / np.sum(single_ti)
+            val_list.append(single_val)
         val = np.sum(sum_nii) / np.sum(sum_ti)
-        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'}]}}
+        # val_index = get_sort_index(val_list)[0:10]
+        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
+                                                           {'name': 'AntPixelAccuracySeg bad 10 list', 'value': val_list, 'type': 'TABLE'}]}}
+        # return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
+        #                                                    {'name': 'val_list', 'value': val_index, 'type': 'TABLE'}]}}
 
 
 class AntMeanAccuracySeg(AntMeasure):
@@ -64,8 +74,10 @@ class AntMeanAccuracySeg(AntMeasure):
 
         if label is not None:
             data = zip(data, label)
-
+        val_list = []
         for predict, gt in data:
+            single_nii = np.zeros((1, classes_num))
+            single_ti = np.zeros((1, classes_num))
             gt_labels = set(gt.flatten())
             for l in gt_labels:
                 l = int(l)
@@ -73,14 +85,19 @@ class AntMeanAccuracySeg(AntMeasure):
                     continue
 
                 p = np.where(gt == l)
+                single_ti[l - 1] += len(p[0])
                 sum_ti[l - 1] += len(p[0])
 
                 predicted_l = predict[p]
                 nii = len(np.where(predicted_l == l)[0])
+                single_nii[l - 1] += nii
                 sum_nii[l - 1] += nii
-
+            single_val = np.sum(single_nii) / np.sum(single_ti)
+            val_list.append(single_val)
         val = np.mean(sum_nii / sum_ti)
-        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'}]}}
+        # val_index = get_sort_index(val_list)[0:10]
+        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
+                                                           {'name': 'AntMeanAccuracySeg bad 10 list', 'value': val_list, 'type': 'TABLE'}]}}
 
 
 class AntMeanIOUSeg(AntMeasure):
@@ -102,24 +119,34 @@ class AntMeanIOUSeg(AntMeasure):
 
         if label is not None:
             data = zip(data, label)
-
+        val_list = []
         for predict, gt in data:
             gt_labels = set(gt.flatten())
+            single_nii = np.zeros((1, classes_num))
+            single_ti = np.zeros((1, classes_num))
+            single_ji = np.zeros((1, classes_num))
             for l in gt_labels:
                 l = int(l)
                 if l == 0:
                     continue
                 p = np.where(gt == l)
+                single_ti[l - 1] += len(p[0])
                 sum_ti[l - 1] += len(p[0])
 
                 predicted_l = predict[p]
                 nii = len(np.where(predicted_l == l)[0])
+                single_nii[l - 1] += nii
                 sum_nii[l - 1] += nii
 
+                single_ji[l - 1] += len(np.where(predict == l)[0])
                 sum_ji[l - 1] += len(np.where(predict == l)[0])
+            single_val = np.mean(single_nii / (single_ti + single_ji - single_nii))
+            val_list.append(single_val)
 
         val = np.mean(sum_nii / (sum_ti + sum_ji - sum_nii))
-        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'}]}}
+        # val_index = get_sort_index(val_list)[0:10]
+        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
+                                                           {'name': 'AntMeanIOUSeg bad 10 list', 'value': val_list, 'type': 'TABLE'}]}}
 
 
 class AntFrequencyWeightedIOUSeg(AntMeasure):
@@ -141,24 +168,34 @@ class AntFrequencyWeightedIOUSeg(AntMeasure):
 
         if label is not None:
             data = zip(data, label)
-
+        val_list = []
         for predict, gt in data:
             gt_labels = set(gt.flatten())
+            single_nii = np.zeros((1, classes_num))
+            single_ti = np.zeros((1, classes_num))
+            single_ji = np.zeros((1, classes_num))
             for l in gt_labels:
                 l = int(l)
                 if l == 0:
                     continue
                 p = np.where(gt == l)
+                single_ti[l - 1] += len(p[0])
                 sum_ti[l - 1] += len(p[0])
 
                 predicted_l = predict[p]
                 nii = len(np.where(predicted_l == l)[0])
+                single_nii[l - 1] += nii
                 sum_nii[l - 1] += nii
 
+                single_ji[l - 1] += len(np.where(predict == l)[0])
                 sum_ji[l - 1] += len(np.where(predict == l)[0])
+            single_val = np.sum(single_ti * single_nii / (single_ti + single_ji - single_nii)) / np.sum(single_ti)
+            val_list.append(single_val)
 
         val = np.sum(sum_ti * sum_nii / (sum_ti + sum_ji - sum_nii)) / np.sum(sum_ti)
-        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'}]}}
+        # val_index = get_sort_index(val_list)[0:10]
+        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
+                                                           {'name': 'AntFrequencyWeightedIOUSeg bad 10 list', 'value': val_list, 'type': 'TABLE'}]}}
 
 
 class AntMeanIOUBoundary(AntMeasure):
@@ -186,8 +223,12 @@ class AntMeanIOUBoundary(AntMeasure):
 
         if label is not None:
             data = zip(data, label)
-
+        val_list = []
         for predict, gt in data:
+            single_nii = np.zeros((1, classes_num))
+            single_ti = np.zeros((1, classes_num))
+            single_ji = np.zeros((1, classes_num))
+
             gt_labels = set(gt.flatten())
             rows, cols = gt.shape[:2]
             # generate trimap for objects (predict)
@@ -225,17 +266,23 @@ class AntMeanIOUBoundary(AntMeasure):
                 # cv2.imshow("DD", (trimap * 255).astype(np.uint8))
                 # cv2.imshow("ZZ", (gt * 255).astype(np.uint8))
                 # cv2.waitKey(0)
-
+                single_ti[l - 1] += len(gt_band_index[0])
                 sum_ti[l - 1] += len(gt_band_index[0])
 
                 predicted_l = predict_trimap[gt_band_boundary[gt_band_index, 0], gt_band_boundary[gt_band_index, 1]]
                 nii = len(np.where(predicted_l == l)[0])
+                single_nii[l - 1] += nii
                 sum_nii[l - 1] += nii
 
+                single_ji[l - 1] += len(np.where(predict_trimap == l)[0])
                 sum_ji[l - 1] += len(np.where(predict_trimap == l)[0])
+            single_val = np.mean(single_nii / (single_ti + single_ji - single_nii))
+            val_list.append(single_val)
 
         val = np.mean(sum_nii / (sum_ti + sum_ji - sum_nii))
-        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'}]}}
+        # val_index = get_sort_index(val_list)[0:10]
+        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
+                                                           {'name': 'AntMeanIOUBoundary bad 10 list', 'value': val_list, 'type': 'TABLE'}]}}
 
 
         # def main():

@@ -3,14 +3,16 @@
 # @File    : html.py
 # @Author  : jian(jian@mltalker.com)
 from __future__ import division
-from __future__ import unicode_literals
-from __future__ import print_function
+# from __future__ import unicode_literals
+# from __future__ import print_function
 import os
 import numpy as np
 import base64
 import copy
 from antgo.utils.encode import *
 from jinja2 import Environment, FileSystemLoader
+import json
+from antgo.utils.utils import get_sort_index
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_ENVIRONMENT = Environment(
@@ -73,12 +75,34 @@ def everything_to_html(data, dump_dir):
             for ms in ant_info['measure']:
                 everything_statistics.append(ms)
 
+
+        # 4.time info
+        if 'timecostmost' in ant_info:
+            everything_statistics.append(ant_info['timecostmost'])
+        # time_path = os.path.join(dump_dir, 'inference', 'time.txt')
+        # print(time_path)
+        # if os.path.exists(time_path):
+        #     f = open(time_path)
+        #     times = f.readlines()
+        #     times = map(lambda x: float(x.strip()), times)
+        #     index = get_sort_index(times)[0:10]
+        #     values = [{'name': 'time cost bad 10 list', 'value': [[i, times[i]] for i in index], 'type': 'TABLE'}]
+        #     # {'name': 'AntFrequencyWeightedIOUSeg bad 10 list', 'value': [[i, val_list[i]] for i in val_index], 'type': 'TABLE'}
+        #     all_time_statistic = {'statistic':{'name': 'all time',
+        #                                        'value': values}}
+        #     everything_statistics.append(all_time_statistic)
+
+            # print('everything statistic', everything_statistics)
+
     #
     statistic_visualization = _transform_statistic_to_visualization(everything_statistics)
     context = {
         'measures': statistic_visualization
     }
-
+    # print(json.dumps(context))
+    f = open('/home/zhaoqike/statistic.txt', 'w')
+    f.write(json.dumps(context))
+    f.close()
     # to html
     with open(os.path.join(dump_dir,'statistic-report.html'),'w') as f:
         html = render_template('statistic-report.html', context)
@@ -186,7 +210,7 @@ if __name__ == '__main__':
     experiment_1_statis['aa']['cpu']['mem_max_usage'] = 44
     experiment_1_statis['aa']['cpu']['cpu_mean_usage'] = 55
     experiment_1_statis['aa']['cpu']['cpu_median_usage'] = 11
-    experiment_1_statis['aa']['cpu']['cpu_max_usage'] = 22
+    experiment_1_statis['aa']['cpu']['cpu_max_usage'] = '22'
     experiment_1_statis['aa']['cpu']['cpu_model'] = 'aabbcc'
 
     voc_measure = {'statistic': {'name': 'voc',
@@ -213,13 +237,13 @@ if __name__ == '__main__':
                                  'value': [{'name': 'ccmm', 'value': (np.ones((3, 4)) * 3).tolist(), 'type': 'MATRIX',
                                             'x': ['a','b','c','d'], 'y': ['x','y','z']}]}}
 
-    random_img = np.random.random((100,100))
+    random_img = np.random.random((100,100,3))
     random_img = random_img * 255
     random_img = random_img.astype(np.uint8)
-    image_m = {'statistic': {'name': 'image',
-                                 'value': [{'name': 'image', 'value': random_img, 'type': 'IMAGE'}]}}
+    # image_m = {'statistic': {'name': 'image',
+    #                              'value': [{'name': 'image', 'value': random_img, 'type': 'IMAGE'}]}}
 
-    experiment_1_statis['aa']['measure'] = [voc_measure, roc_auc_measure, pr_f1_measure, confusion_m, image_m]
+    experiment_1_statis['aa']['measure'] = [voc_measure, roc_auc_measure, pr_f1_measure, confusion_m]
     # # experiment 2
     # experiment_2_statis = {}
     # experiment_2_statis['aa'] = {}
@@ -262,4 +286,4 @@ if __name__ == '__main__':
     # experiment_2_statis['aa']['measure'] = [voc_measure, roc_auc_measure, pr_f1_measure, confusion_m]
 
     # ss = multi_repeats_measures_statistic([experiment_1_statis, experiment_2_statis])
-    everything_to_html(experiment_1_statis, '/Users/zhangken/Downloads/')
+    everything_to_html(experiment_1_statis, '/home/zhaoqike/')
