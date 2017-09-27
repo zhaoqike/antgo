@@ -198,6 +198,8 @@ class AntChallenge(AntBase):
         all_time_statistic = {'statistic':{'name': 'time cost',
                                            'value': values}}
         task_running_statictic[self.ant_name]['timecostmost'] = all_time_statistic
+
+      task_running_statictic[self.ant_name]['task'] = os.path.basename(self.ant_task_config)
       
       logger.info('generate model evaluation report')
       # performace statistic

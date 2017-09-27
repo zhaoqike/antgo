@@ -29,6 +29,8 @@ def everything_to_html(data, dump_dir):
     # list all statistics
     everything_statistics = []
     for ant_name, ant_info in data.items():
+        if 'task' in ant_info:
+            everything_statistics.append({'statistic': {'name': 'task','value': [{'name': 'task', 'value': ant_info['task'], 'type': "SCALAR"}]}})
         # 0.step cpu statistic
         if 'cpu' in ant_info:
             cpu_model = ant_info['cpu']['cpu_model']
@@ -100,9 +102,9 @@ def everything_to_html(data, dump_dir):
         'measures': statistic_visualization
     }
     # print(json.dumps(context))
-    f = open('/home/zhaoqike/statistic.txt', 'w')
-    f.write(json.dumps(context))
-    f.close()
+    # f = open('/home/zhaoqike/statistic.txt', 'w')
+    # f.write(json.dumps(context))
+    # f.close()
     # to html
     with open(os.path.join(dump_dir,'statistic-report.html'),'w') as f:
         html = render_template('statistic-report.html', context)
