@@ -52,7 +52,7 @@ class AntPixelAccuracySeg(AntMeasure):
         val = np.sum(sum_nii) / np.sum(sum_ti)
         # val_index = get_sort_index(val_list)[0:10]
         return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
-                                                           {'name': 'AntPixelAccuracySeg bad 10 list', 'value': val_list, 'type': 'TABLE'}]}}
+                                                           {'name': 'AntPixelAccuracySeg list', 'value': val_list, 'type': 'TABLE'}]}}
         # return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
         #                                                    {'name': 'val_list', 'value': val_index, 'type': 'TABLE'}]}}
 
@@ -97,7 +97,7 @@ class AntMeanAccuracySeg(AntMeasure):
         val = np.mean(sum_nii / sum_ti)
         # val_index = get_sort_index(val_list)[0:10]
         return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
-                                                           {'name': 'AntMeanAccuracySeg bad 10 list', 'value': val_list, 'type': 'TABLE'}]}}
+                                                           {'name': 'AntMeanAccuracySeg list', 'value': val_list, 'type': 'TABLE'}]}}
 
 
 class AntMeanIOUSeg(AntMeasure):
@@ -146,7 +146,7 @@ class AntMeanIOUSeg(AntMeasure):
         val = np.mean(sum_nii / (sum_ti + sum_ji - sum_nii))
         # val_index = get_sort_index(val_list)[0:10]
         return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
-                                                           {'name': 'AntMeanIOUSeg bad 10 list', 'value': val_list, 'type': 'TABLE'}]}}
+                                                           {'name': 'AntMeanIOUSeg list', 'value': val_list, 'type': 'TABLE'}]}}
 
 
 class AntFrequencyWeightedIOUSeg(AntMeasure):
@@ -195,7 +195,7 @@ class AntFrequencyWeightedIOUSeg(AntMeasure):
         val = np.sum(sum_ti * sum_nii / (sum_ti + sum_ji - sum_nii)) / np.sum(sum_ti)
         # val_index = get_sort_index(val_list)[0:10]
         return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
-                                                           {'name': 'AntFrequencyWeightedIOUSeg bad 10 list', 'value': val_list, 'type': 'TABLE'}]}}
+                                                           {'name': 'AntFrequencyWeightedIOUSeg list', 'value': val_list, 'type': 'TABLE'}]}}
 
 
 class AntMeanIOUBoundary(AntMeasure):
@@ -282,7 +282,7 @@ class AntMeanIOUBoundary(AntMeasure):
         val = np.mean(sum_nii / (sum_ti + sum_ji - sum_nii))
         # val_index = get_sort_index(val_list)[0:10]
         return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
-                                                           {'name': 'AntMeanIOUBoundary bad 10 list', 'value': val_list, 'type': 'TABLE'}]}}
+                                                           {'name': 'AntMeanIOUBoundary list', 'value': val_list, 'type': 'TABLE'}]}}
 
 
         # def main():

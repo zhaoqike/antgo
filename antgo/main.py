@@ -48,6 +48,7 @@ flags.DEFINE_string('dump', None, 'dump dir')
 flags.DEFINE_string('token', None, 'id')
 flags.DEFINE_string('name', None, 'app name')
 flags.DEFINE_string('config', 'config.xml', 'antgo config')
+flags.DEFINE_string('model_name', None, 'model name')
 
 FLAGS = flags.AntFLAGS
 Config = config.AntConfig
@@ -140,6 +141,11 @@ def main():
     main_config_path = os.path.join(main_folder, main_param)
     params = yaml.load(open(main_config_path, 'r'))
     ant_context.params = params
+
+  model_name = FLAGS.model_name()
+  setattr(ant_context, 'model_name', model_name)
+  print(model_name)
+  print(hasattr(ant_context, 'model_name'))
   
   if ant_cmd == "train":
     running_process = AntTrain(ant_context,
