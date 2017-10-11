@@ -156,6 +156,7 @@ def everything_to_db(db_info, dump_dir):
         INSERT INTO bokeh_test.bokeh_test_tbl
             (bokeh_test_title,
             model_name,
+            task,
             pixel_accuracy,
             pixel_accuracy_top_99,
             pixel_accuracy_top_95,
@@ -192,6 +193,7 @@ def everything_to_db(db_info, dump_dir):
             VALUES
             ('%s',
             '%s',
+            '%s',
             %f,
             %f,
             %f,
@@ -225,19 +227,19 @@ def everything_to_db(db_info, dump_dir):
             '%s',
             '%s',
             now());
-            """%(db_info['test_name'], db_info['model_name'],
+            """%(db_info['test_name'], db_info['model_name'], db_info['task'],
                  db_info['PixelAccuracy']['all'], db_info['PixelAccuracy']['avg99'], db_info['PixelAccuracy']['avg95'], db_info['PixelAccuracy']['list'], db_info['PixelAccuracy']['bad10'],
                  db_info['MeanAccuracy']['all'], db_info['MeanAccuracy']['avg99'], db_info['MeanAccuracy']['avg95'], db_info['MeanAccuracy']['list'], db_info['MeanAccuracy']['bad10'],
                  db_info['MeanIOU']['all'], db_info['MeanIOU']['avg99'], db_info['MeanIOU']['avg95'], db_info['MeanIOU']['list'], db_info['MeanIOU']['bad10'],
                  db_info['FrequencyWeightedIOU']['all'], db_info['FrequencyWeightedIOU']['avg99'], db_info['FrequencyWeightedIOU']['avg95'], db_info['FrequencyWeightedIOU']['list'], db_info['FrequencyWeightedIOU']['bad10'],
                  db_info['MeanIOUBoundary']['all'], db_info['MeanIOUBoundary']['avg99'], db_info['MeanIOUBoundary']['avg95'], db_info['MeanIOUBoundary']['list'], db_info['MeanIOUBoundary']['bad10'],
                  db_info['time']['sum'], db_info['time']['sum'], db_info['time']['avg'], db_info['time']['avg99'], db_info['time']['avg95'], db_info['time']['bad10'], db_info['time']['bad10'])
-    f = open('/home/zhaoqike/ddd.txt', 'w')
-    print >> f,  sql_command
-    f.close()
+    # f = open('/home/zhaoqike/ddd.txt', 'w')
+    # print >> f,  sql_command
+    # f.close()
     ttt = cursor.execute(sql_command)
 
-    print ttt
+    # print ttt
     conn.commit()
 
     cursor.close()

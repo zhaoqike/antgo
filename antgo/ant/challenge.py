@@ -216,6 +216,7 @@ class AntChallenge(AntBase):
       db_info = {}
       db_info['test_name'] = self.ant_name
       db_info['model_name'] = self.ant_context.model_name if hasattr(self.ant_context, 'model_name') else 'model'
+      db_info['task']=os.path.basename(self.ant_task_config)
       for measure in task_running_statictic[self.ant_name]['measure']:
         measure_name = measure['statistic']['name']
         [all, avg, avg99, avg95] = measure['statistic']['value'][0]['value'][1]
@@ -229,7 +230,8 @@ class AntChallenge(AntBase):
         db_info[measure_name]['list'] = '<xml>' + ''.join(db_info[measure_name]['list']) + '</xml>'
         db_info[measure_name]['bad10'] = measure['statistic']['value'][2]['value']
         db_info[measure_name]['bad10'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info[measure_name]['bad10'])
-        db_info[measure_name]['bad10'] = '<xml>' + ''.join(db_info[measure_name]['list']) + '</xml>'
+        db_info[measure_name]['bad10'] = '<xml>' + ''.join(db_info[measure_name]['bad10']) + '</xml>'
+
 
       if task_running_statictic[self.ant_name].has_key('timecostmost'):
         [sumt, avg, avg99, avg95] = task_running_statictic[self.ant_name]['timecostmost']['statistic']['value'][0]['value'][1]
@@ -240,7 +242,7 @@ class AntChallenge(AntBase):
         db_info['time']['avg95'] = avg95
         db_info['time']['bad10'] = task_running_statictic[self.ant_name]['timecostmost']['statistic']['value'][1]['value']
         db_info['time']['bad10'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info['time']['bad10'])
-        db_info['time']['bad10'] = '<xml>' + ''.join(db_info[measure_name]['list']) + '</xml>'
+        db_info['time']['bad10'] = '<xml>' + ''.join(db_info['time']['bad10']) + '</xml>'
       everything_to_html(task_running_statictic, os.path.join(self.ant_dump_dir, now_time))
       everything_to_db(db_info, os.path.join(self.ant_dump_dir, now_time))
 
