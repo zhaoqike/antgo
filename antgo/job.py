@@ -29,7 +29,7 @@ class Chart():
     self.chart_title = title
     self.chart_x_axis = x_axis
     self.chart_y_axis = y_axis
-    self.chart_id = str(uuid.uuid1())
+    self.chart_id = unicode(uuid.uuid1()) if PYTHON_VERSION == 2 else str(uuid.uuid1())
     self.chart_channels = []
 
   @property
@@ -57,6 +57,9 @@ class Chart():
     channel.chart = self
     self.chart_channels.append(channel)
 
+  def clone(self):
+    self.chart_id = unicode(uuid.uuid1()) if PYTHON_VERSION == 2 else str(uuid.uuid1())
+
 
 class Channel():
   def __init__(self, channel_name = None, channel_type = None, channel_job=None, channel_params={}):
@@ -66,7 +69,7 @@ class Channel():
     self.channel_chart = None
     self.channel_job = channel_job
     self.channel_params = channel_params
-    assert(self.channel_type in ["IMAGE", "NUMERIC", "TEXT", "HISTOGRAM", "TABLE"])
+    assert(self.channel_type in ["IMAGE", "NUMERIC", "TEXT", "HISTOGRAM"])
 
   @property
   def params(self):
@@ -99,8 +102,6 @@ class Channel():
       return self.reorganize_text_data(data)
     elif data_type == "HISTOGRAM":
       return self.reorganize_histogram_data(data)
-    elif data_type == "TABLE":
-      return self.reorganize_table_data(data)
     else:
       return data
 
@@ -117,7 +118,7 @@ class Channel():
         logger.error("Channel Y Must be 2 or 3 Dimension")
         return None
       if len(data_y.shape) == 3:
-        if data_y[2] != 3:
+        if data_y.shape[2] != 3:
           logger.error("Channel Y Must Possess 3 or 1 Channels")
           return None
 
@@ -127,7 +128,7 @@ class Channel():
 
       new_height = int(height * min_scale)
       new_width = int(width * min_scale)
-      resized_img = scipy.misc.imresize(data,(new_height, new_width))
+      resized_img = scipy.misc.imresize(data_y,(new_height, new_width))
       if resized_img.dtype == np.uint8:
         return (data_x, base64.b64encode(png_encode(resized_img)))
 
@@ -188,29 +189,6 @@ class Channel():
       logger.error("Channel Y Must be Numpy Array")
     return (data_x, data_y)
 
-  def reorganize_table_data(self, data):
-    data_x, data_y = data
-    try:
-      data_x = float(data_x)
-    except:
-      logger.error("Channel X Must be Scalar Data")
-
-    try:
-      if len(data_y.shape) != 2:
-        logger.error("Channel Y Shape Must be 2 Dimension")
-
-      # transform to string
-      height, width = data_y.shape[:2]
-      yy = [[] for i in range(height)]
-      for y in range(height):
-          for x in range(width):
-              yy[y].append(str(int(data_y[y,x] * 100) / 100))
-      data_y = yy
-    except:
-        logger.error("Channel Y Must be Numpy Array")
-
-    return (data_x, data_y)
-
   def send(self, x=0, y=0):
     # {"CHART", (chart_id, chart_title,...)}
     x_copy = copy.deepcopy(x)
@@ -239,11 +217,14 @@ class Job(threading.Thread):
     self.job_context = context
     self.setDaemon(True)
 
+    self.charts = []
+
   def create_channel(self, channel_name, channel_type):
     return Channel(channel_name, channel_type, self)
 
   def create_chart(self, chart_channels, chart_title, chart_x_axis="x", chart_y_axis="y"):
     chart = Chart(chart_title, chart_x_axis, chart_y_axis)
+    self.charts.append(chart)
     for cc in chart_channels:
         chart.bind_channel(cc)
 
@@ -261,6 +242,10 @@ class Job(threading.Thread):
 
   def stop(self):
     self.data_queue.put(None)
+
+  def clone_charts(self):
+    for chart in self.charts:
+      chart.clone()
 
   def run(self):
     while True:

@@ -15,9 +15,13 @@ Installation
 install 3rd software or packages::
 
     1. leveldb
-    apt-get install libleveldb1 libleveldb-dev
+        Ubuntu
+        apt-get install libleveldb1 libleveldb-dev
+        Centos
+        yum install epel-release
+        yum install leveldb-devel
     2. graphviz
-    http://www.graphviz.org/Download_linux_ubuntu.php
+        http://www.graphviz.org/Download_linux_ubuntu.php
 
 install antgo::
 

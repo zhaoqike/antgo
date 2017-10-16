@@ -73,10 +73,11 @@ def safe_recorder_manager(recorder):
     yield recorder
   except:
     logger.error('error in custom callback (training_process or infer_process)')
-    traceback.print_stack()
-    traceback.print_exc()
+    error_info = sys.exc_info()
+    logger.error(error_info)
     recorder.close()
-    raise RuntimeError
+
+    raise error_info[0]
   
   recorder.close()
 
@@ -85,8 +86,9 @@ class RecordReader(object):
   def __init__(self, record_path):
     # db
     self._record_path = record_path
-    self._db = DataflowClient(host=getattr(config.AntConfig, 'dataflow_server_host', 'tcp://127.0.0.1:9999'))
-    self._db.open(record_path.encode('utf-8'))
+
+    # db
+    self._db = None
 
     # db attributes
     self._db_attrs = {}
@@ -98,13 +100,18 @@ class RecordReader(object):
       setattr(self, attr_key, attr_value)
 
   def close(self):
-    self._db.close(self._record_path.encode('utf-8'))
+    if self._db is not None:
+      self._db.close(self._record_path.encode('utf-8'))
 
   def record_attrs(self):
     return self._db_attrs
 
   def read(self, index, *args):
     try:
+      if self._db is None:
+        self._db = DataflowClient(host=getattr(config.AntConfig, 'dataflow_server_host', 'tcp://127.0.0.1:9999'))
+        self._db.open(self._record_path.encode('utf-8'))
+
       data = Sample.unserialize(self._db.get(bytes(index)))
       sample = []
       if len(args) == 0:
@@ -122,6 +129,10 @@ class RecordReader(object):
       return [None for _ in range(len(args))]
 
   def iterate_read(self, *args):
+    if self._db is None:
+      self._db = DataflowClient(host=getattr(config.AntConfig, 'dataflow_server_host', 'tcp://127.0.0.1:9999'))
+      self._db.open(self._record_path.encode('utf-8'))
+
     for k in range(self.count):
       data = Sample.unserialize(self._db.get(bytes(k)))
       sample = []
@@ -138,6 +149,10 @@ class RecordReader(object):
         yield sample
 
   def iterate_sampling_read(self, index, *args):
+    if self._db is None:
+      self._db = DataflowClient(host=getattr(config.AntConfig, 'dataflow_server_host', 'tcp://127.0.0.1:9999'))
+      self._db.open(self._record_path.encode('utf-8'))
+
     for i in index:
       data = Sample.unserialize(self._db.get(bytes(i)))
       sample = []

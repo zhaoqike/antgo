@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 from __future__ import print_function
 from antgo.dataflow.common import *
 from antgo.context import *
+from antgo.dataflow.dataset.heart import *
 import numpy as np
 
 ##################################################
@@ -47,9 +48,8 @@ ctx.job.create_chart([text_channel], "record")
 ##################################################
 def training_callback(data_source, dump_dir):
   batch_data = BatchData(Node.inputs(data_source), batch_size=64)
-  for iter in range(100):
-    data, label = batch_data.iterator_value()
-
+  iter = 0
+  for data, label in batch_data.iterator_value():
     loss = np.random.random()
     l2_norm = np.random.random()
     weight = np.random.random((200))
@@ -63,20 +63,32 @@ def training_callback(data_source, dump_dir):
     histogram_w_channel.send(iter, weight)
 
     # currunt sample
-    image = np.random.random((100,100))
-    image_channel.send(image)
+    image = np.random.random((100,100,3))
+    image_channel.send(iter, image)
 
-    text_channel.send('loss %f %f'%(loss, l2_norm))
+    text_channel.send(iter, 'loss %f %f'%(loss, l2_norm))
+
+    iter += 1
+    print(iter)
+
+  print('stop training process')
 
 ###################################################
-######## 2.step define infer process     ##########
+######## 3.step define infer process     ##########
 ###################################################
 def infer_callback(data_source, dump_dir):
-  pass
+  iter = 0
+  for data in data_source.iterator_value():
+    iter += 1
 
+    ctx.recorder.record(random.random())
+    # time.sleep(2)
+    print('iterator %d'%iter)
+
+  print('stop inference process')
 
 ###################################################
-####### 5.step link training and infer ############
+####### 4.step link training and infer ############
 #######        process to context      ############
 ###################################################
 ctx.training_process = training_callback

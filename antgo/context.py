@@ -8,7 +8,7 @@ from antgo.dataflow.dataset import *
 
 class Params(object):
   def __init__(self, params=None):
-    if params:
+    if params is not None:
       for k, v in params.items():
         if k != 'self':
           setattr(self, k, v)
@@ -155,11 +155,14 @@ class Context(object):
     self.training_process_callback = callback
 
   def call_training_process(self, data_source, dump_dir):
-    if self.recorder is not None:
+    if self.recorder is not None and self.recorder.dump_dir == None:
       self.recorder.dump_dir = dump_dir
     
     self.data_source = data_source
     self.training_process(data_source, dump_dir)
+
+    # clone charts
+    self.job.clone_charts()
 
   @property
   def infer_process(self):
@@ -170,11 +173,14 @@ class Context(object):
     self.infer_process_callback = callback
 
   def call_infer_process(self, data_source, dump_dir):
-    if self.recorder is not None:
+    if self.recorder is not None and self.recorder.dump_dir == None:
       self.recorder.dump_dir = dump_dir
       
     self.data_source = data_source
     self.infer_process(data_source, dump_dir)
+
+    # clone charts
+    self.job.clone_charts()
 
   @property
   def recorder(self):

@@ -19,18 +19,25 @@ except:
 
 
 class BatchData(Node):
-  class _FetchBatchDataThread(StoppableThread):
-    def __init__(self, host_node, data_buffer):
-      super(BatchData._FetchBatchDataThread, self).__init__()
-      self.setDaemon(True)
-      self._buffer = data_buffer
+  class _FetchDataThread(StoppableProcess):
+    def __init__(self, host_node, buffer_size):
+      super(BatchData._FetchDataThread, self).__init__(buffer_size)
+      self.daemon = True
       self._host_node = host_node
-    
+      self._is_launched = False
+
+    @property
+    def is_launched(self):
+      return self._is_launched
+    @is_launched.setter
+    def is_launched(self, val):
+      self._is_launched = val
+
     def run(self):
       while True:
         try:
           data = self._host_node._fetch_batch_data()
-          self._buffer.put(data)
+          self.process_queue.put(data)
           
           # force input update
           for i in self._host_node._positional_inputs:
@@ -39,10 +46,9 @@ class BatchData(Node):
             i._force_inputs_dirty()
             
         except StopIteration:
-          # transfer to main process
-          with self.stop_condition:
-            self._buffer.put(sys.exc_info())
-            self.stop_condition.wait()
+          with self.process_condition:
+            self.process_queue.put(DIE)
+            self.process_condition.wait()
           if self.stopped():
             break
         except:
@@ -57,11 +63,10 @@ class BatchData(Node):
     self.stop_iteration = False
     self.buffer = None
     if buffer_size > 0:
-      self.buffer = queue.Queue(buffer_size)
       self.producer_wait = False
-      self.fetch_data_thread = BatchData._FetchBatchDataThread(self, self.buffer)
-      self.fetch_data_thread.stop_condition = threading.Condition()
-      self.producer_condition = self.fetch_data_thread.stop_condition
+      self.fetch_data_thread = BatchData._FetchDataThread(self, buffer_size)
+      self.producer_condition = self.fetch_data_thread.process_condition
+      self.buffer = self.fetch_data_thread.process_queue
 
       # register at context
       get_global_context().register_stoppable_thread(self.fetch_data_thread)
@@ -114,16 +119,17 @@ class BatchData(Node):
   
   def _evaluate(self):
     if self.buffer is not None:
-      if not self.fetch_data_thread._started.is_set():
+      if not self.fetch_data_thread.is_launched:
         self.fetch_data_thread.start()
-      
+        self.fetch_data_thread.is_launched = True
+
       if self.producer_wait:
         with self.producer_condition:
-          self.producer_condition.notifyAll()
+          self.producer_condition.notify_all()
         self.producer_wait = False
       
       data = self.buffer.get()
-      if len(data) == 3:
+      if data == DIE:
         # no enough data as batch
         self.producer_wait = True
         raise StopIteration
@@ -317,7 +323,7 @@ class SerializedData(Node):
 
 
 class _TransparantNode(Node):
-  def __init__(self, upper_node, name,active_request=True):
+  def __init__(self, upper_node, name, active_request=True):
     super(_TransparantNode, self).__init__(name=name, inputs=upper_node)
     assert(len(self._positional_inputs) == 1)
     self.active_request = active_request
@@ -331,8 +337,8 @@ class _TransparantNode(Node):
     if DIRTY == self._value:
       self._evaluate()
 
-    # if self._buffer.qsize() == 0:
-    #   return self._value
+    if self._buffer.qsize() == 0:
+      return self._value
 
     return self._buffer.get()
 
@@ -386,7 +392,7 @@ class DataAnnotationBranch(Node):
 class AutoBranch(Node):
   def __init__(self, inputs, branch_func):
     super(AutoBranch, self).__init__(name=None, action=self.action, inputs=inputs)
-    self.auto_branch = _TransparantNode(upper_node=Node.inputs(self), name='auto_branch_transparant')
+    self.auto_branch = _TransparantNode(upper_node=Node.inputs(self), name='auto_branch_transparant',active_request=False)
     self.branch_func = branch_func
     
   def action(self, *args, **kwargs):

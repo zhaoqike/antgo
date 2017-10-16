@@ -1,7 +1,7 @@
 # encoding=utf-8
 # @Time    : 17-7-12
 # @File    : segmentation_task.py
-# @Author  :
+# @Author  : jian<jian@mltalker.com>
 from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
@@ -103,17 +103,17 @@ class AntMeanAccuracySeg(AntMeasure):
 
 
 class AntMeanIOUSeg(AntMeasure):
-    def __init__(self, task):
-        # paper: Jonathan Long, Evan Shelhamer, etc. Fully Convolutional Networks for Semantic Segmentation
-        # formular: (1/n_{cl}) / \sum_i n_{ii}/(t_i+\sum_j n_{ji}-n_{ii})
+  def __init__(self, task):
+    # paper: Jonathan Long, Evan Shelhamer, etc. Fully Convolutional Networks for Semantic Segmentation
+    # formular: (1/n_{cl}) / \sum_i n_{ii}/(t_i+\sum_j n_{ji}-n_{ii})
 
-        super(AntMeanIOUSeg, self).__init__(task, 'MeanIOU')
-        assert(task.task_type == 'SEGMENTATION')
+    super(AntMeanIOUSeg, self).__init__(task, 'MeanIOU')
+    assert(task.task_type == 'SEGMENTATION')
 
-        self.is_support_rank = True
+    self.is_support_rank = True
 
-    def eva(self, data, label):
-        classes_num = len(self.task.class_label)
+  def eva(self, data, label):
+    classes_num = len(self.task.class_label)
 
         sum_nii = np.zeros((1, classes_num))
         sum_ti = np.zeros((1, classes_num))
@@ -152,21 +152,21 @@ class AntMeanIOUSeg(AntMeasure):
 
 
 class AntFrequencyWeightedIOUSeg(AntMeasure):
-    def __init__(self, task):
-        # paper: Jonathan Long, Evan Shelhamer, etc. Fully Convolutional Networks for Semantic Segmentation
-        # formular: (\sum_kt_k)^{-1} / \sum_i t_in_{ii}/(t_i+\sum_j n_{ji}-n_{ii})
+  def __init__(self, task):
+    # paper: Jonathan Long, Evan Shelhamer, etc. Fully Convolutional Networks for Semantic Segmentation
+    # formular: (\sum_kt_k)^{-1} / \sum_i t_in_{ii}/(t_i+\sum_j n_{ji}-n_{ii})
 
-        super(AntFrequencyWeightedIOUSeg, self).__init__(task, 'FrequencyWeightedIOU')
-        assert(task.task_type == 'SEGMENTATION')
+    super(AntFrequencyWeightedIOUSeg, self).__init__(task, 'FrequencyWeightedIOU')
+    assert(task.task_type == 'SEGMENTATION')
 
-        self.is_support_rank = True
+    self.is_support_rank = True
 
-    def eva(self, data, label):
-        classes_num = len(self.task.class_label)
+  def eva(self, data, label):
+    classes_num = len(self.task.class_label)
 
-        sum_nii = np.zeros((1, classes_num))
-        sum_ti = np.zeros((1, classes_num))
-        sum_ji = np.zeros((1, classes_num))
+    sum_nii = np.zeros((1, classes_num))
+    sum_ti = np.zeros((1, classes_num))
+    sum_ji = np.zeros((1, classes_num))
 
         if label is not None:
             data = zip(data, label)

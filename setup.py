@@ -2,6 +2,13 @@ from setuptools import setup
 from Cython.Build import cythonize
 from distutils.extension import Extension
 import numpy as np
+import os
+import subprocess
+
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 
 # To compile and install locally run "python setup.py build_ext --inplace"
 # Install: pip install . -r requirements.txt (from pip)

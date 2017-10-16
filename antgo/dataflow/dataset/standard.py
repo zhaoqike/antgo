@@ -35,17 +35,17 @@ class Standard(Dataset):
     self._record_reader = None
 
   def data_pool(self):
-    epoch = 0
+    self.epoch = 0
     while True:
       max_epoches = self.epochs if self.epochs is not None else 1
-      if epoch >= max_epoches:
+      if self.epoch >= max_epoches:
         break
-      epoch += 1
+      self.epoch += 1
 
       ids = copy.copy(self.ids)
       if self.rng:
         self.rng.shuffle(ids)
-
+      
       # filter by ids
       filter_ids = getattr(self, 'filter', None)
       if filter_ids is not None:
@@ -59,6 +59,8 @@ class Standard(Dataset):
             label = self.filter_by_condition(label)
             if label is None:
               continue
+          
+          label['id'] = id
         yield [data, label]
 
   def split(self, split_params={}, split_method='holdout'):
@@ -77,8 +79,7 @@ class Standard(Dataset):
           category_ids[id] = 0 if random.random() > 0.5 else 1
 
     if split_method == 'holdout':
-      if ('ratio' in split_params and int(split_params['ratio']) <= 0.0) or\
-              'ratio' not in split_params:
+      if 'ratio' not in split_params:
         train_dataset = Standard(self.train_or_test, self.dir, self.ext_params)
         val_dataset = Standard('val', self.dir, self.ext_params)
         return train_dataset, val_dataset
@@ -98,3 +99,7 @@ class Standard(Dataset):
   @property
   def size(self):
     return len(self.ids)
+  
+  def at(self, id):
+    data, label = self._record_reader.read(id, 'data', 'label')
+    return data, label
