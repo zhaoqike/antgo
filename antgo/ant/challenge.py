@@ -166,6 +166,7 @@ class AntChallenge(AntBase):
 
       with safe_recorder_manager(RecordReader(infer_dump_dir)) as record_reader:
         for measure in running_ant_task.evaluation_measures:
+          print('measure name: ', measure.name)
           record_generator = record_reader.iterate_read('predict', 'groundtruth')
           result = measure.eva(record_generator, None)
           # if 'bad 10 list' in result['statistic']['value'][1]['name']:
