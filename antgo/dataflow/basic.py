@@ -73,6 +73,8 @@ def safe_recorder_manager(recorder):
     yield recorder
   except:
     logger.error('error in custom callback (training_process or infer_process)')
+    traceback.print_stack()
+    traceback.print_exc()
     error_info = sys.exc_info()
     logger.error(error_info)
     recorder.close()

@@ -10,6 +10,7 @@ from antgo.html.html import *
 from antgo.ant.base import *
 from antgo.dataflow.common import *
 from antgo.measures.statistic import *
+from antgo.measures.segmentation_task import *
 from antgo.task.task import *
 from antgo.utils import logger
 from antgo.dataflow.recorder import *
@@ -114,7 +115,7 @@ class AntChallenge(AntBase):
     ant_test_dataset = running_ant_task.dataset('test',
                                                  os.path.join(self.ant_data_source, running_ant_task.dataset_name),
                                                  running_ant_task.dataset_params)
-    
+
     with safe_recorder_manager(ant_test_dataset):
       # split data and label
       data_annotation_branch = DataAnnotationBranch(Node.inputs(ant_test_dataset))
@@ -174,19 +175,6 @@ class AntChallenge(AntBase):
         for i in range(len(all_tag_measure)):
           tag_measure = copy.deepcopy(all_tag_measure[i])
           row_title = copy.deepcopy(tag_name[i])
-          # print(row_title)
-          # row_title = list(map(lambda xx: xx.decode('utf-8'), row_title))
-          # row_title = map(lambda xx: xx.decode('utf-8'), row_title)
-          # title = []
-          # for t in row_title:
-          #   title.append(json.dumps(t, ensure_ascii=False))
-          # row_title = title
-          # fuck = ['单人', '两人', '三人或以上']
-          # print(fuck)
-          # fuck = map(lambda xx: xx.decode('utf-8'), fuck)
-          # print(fuck)
-          # print(tag_measure, row_title)
-          # print(len(tag_measure), len(row_title), type(tag_measure), type(row_title))
           assert(len(tag_measure) == len(row_title))
 
           row_title.extend(["-"] * (max_tag_len-len(tag_measure)))
@@ -209,11 +197,8 @@ class AntChallenge(AntBase):
 
       with safe_recorder_manager(RecordReader(intermediate_dump_dir)) as record_reader:
         for measure in running_ant_task.evaluation_measures:
-          print('measure name: ', measure.name)
           record_generator = record_reader.iterate_read('predict', 'groundtruth')
           result = measure.eva(record_generator, None)
-
-          # if 'bad 10 list' in result['statistic']['value'][1]['name']:
           result['statistic']['value'][0]['type'] = 'TABLE'
           all = result['statistic']['value'][0]['value']
           val_list = result['statistic']['value'][1]['value']
@@ -225,6 +210,23 @@ class AntChallenge(AntBase):
           val_index = get_sort_index(val_list)[0:10]
           # result['statistic']['value'][1]['value'] = [[filelist[i], val_list[i]] for i in val_index]
           result['statistic']['value'].append({'name': result['statistic']['value'][1]['name'] + ' bad 10', 'value': [[filelist[i], val_list[i]] for i in val_index], 'type': 'TABLE'})
+          measure_path = os.path.join(os.path.join(self.ant_dump_dir, now_time_stamp), 'inference', measure.name)
+          os.makedirs(measure_path)
+          for i in val_index:
+              orig = ant_test_dataset.at(i)[0]
+              pr = record_reader.read(i)[0]
+              pr[pr == 1] = 255
+              pr = cv2.merge([pr, pr, pr])
+              gt = record_reader.read(i)[1]
+              gt[gt == 1] = 255
+              gt = cv2.merge([gt, gt, gt])
+              all = np.hstack((orig, gt, pr))
+              print(all.shape)
+              # print(orig.shape, pr.shape, gt.shape)
+              cv2.imwrite(os.path.join(measure_path, 'pic'+str(i)+'.png'), orig)
+              cv2.imwrite(os.path.join(measure_path, 'pr'+str(i)+'.png'), pr)
+              cv2.imwrite(os.path.join(measure_path, 'gt'+str(i)+'.png'), gt)
+              cv2.imwrite(os.path.join(measure_path, 'all'+str(i)+'.png'), all)
 
           if measure.is_support_rank:
             # compute confidence interval
@@ -232,7 +234,6 @@ class AntChallenge(AntBase):
             result['statistic']['value'][0]['interval'] = confidence_interval
 
           evaluation_measure_result.append(result)
-
           if taglist is not None:
             all_tag_measure = compute_subtag_measures(val_list, taglist)
             table = tag_measure_to_table(all_tag_measure)
@@ -240,8 +241,49 @@ class AntChallenge(AntBase):
             result['statistic']['value'].append(all_tag_measure_context)
         task_running_statictic[self.ant_name]['measure'] = evaluation_measure_result
 
+        # add hole and edge error pictures
+        record_generator = record_reader.iterate_read('predict', 'groundtruth')
+        result = AntHoleEdgeSeg(running_ant_task).eva(record_generator, None)
+        hole_list = result['statistic']['value'][1]['value']
+        hole_pic_list = result['statistic']['value'][2]['value']
+        edge_list = result['statistic']['value'][3]['value']
+        edge_pic_list = result['statistic']['value'][4]['value']
+        hole_list_bad10_index = get_sort_index(hole_list, reverse=True)[0:10]
+        edge_list_bad10_index = get_sort_index(edge_list, reverse=True)[0:10]
+        hole_path = os.path.join(os.path.join(self.ant_dump_dir, now_time_stamp), 'inference', 'hole')
+        edge_path = os.path.join(os.path.join(self.ant_dump_dir, now_time_stamp), 'inference', 'edge')
 
-      time_path = os.path.join(os.path.join(self.ant_dump_dir, now_time), 'inference', 'time.txt')
+        os.makedirs(hole_path)
+        os.makedirs(edge_path)
+        for i in hole_list_bad10_index:
+            pr = record_reader.read(i)[0]
+            pr[pr == 1] = 255
+            pr = cv2.merge([pr, pr, pr])
+            gt = record_reader.read(i)[1]
+            gt[gt == 1] = 255
+            gt = cv2.merge([gt, gt, gt])
+            orig = ant_test_dataset.at(i)[0]
+            all = np.hstack((orig, gt, pr, hole_pic_list[i]))
+            # print(os.path.join(hole_path, 'hole'+str(i)+'.png'))
+            cv2.imwrite(os.path.join(hole_path, 'hole'+str(i)+'.png'), hole_pic_list[i])
+            cv2.imwrite(os.path.join(hole_path, 'orig'+str(i)+'.png'), orig)
+            cv2.imwrite(os.path.join(hole_path, 'all'+str(i)+'.png'), all)
+        for i in edge_list_bad10_index:
+            pr = record_reader.read(i)[0]
+            pr[pr == 1] = 255
+            pr = cv2.merge([pr, pr, pr])
+            gt = record_reader.read(i)[1]
+            gt[gt == 1] = 255
+            gt = cv2.merge([gt, gt, gt])
+            orig = ant_test_dataset.at(i)[0]
+            all = np.hstack((orig, gt, pr, edge_pic_list[i]))
+            # print(os.path.join(edge_path, 'edge'+str(i)+'.png'))
+            cv2.imwrite(os.path.join(edge_path, 'edge'+str(i)+'.png'), edge_pic_list[i])
+            cv2.imwrite(os.path.join(edge_path, 'orig'+str(i)+'.png'), ant_test_dataset.at(i)[0])
+            cv2.imwrite(os.path.join(edge_path, 'all'+str(i)+'.png'), all)
+
+
+      time_path = os.path.join(os.path.join(self.ant_dump_dir, now_time_stamp), 'inference', 'time.txt')
 
 
       if os.path.exists(time_path):
@@ -277,11 +319,15 @@ class AntChallenge(AntBase):
         db_info[measure_name]['avg99'] = avg99
         db_info[measure_name]['avg95'] = avg95
         db_info[measure_name]['list'] = zip(filelist, measure['statistic']['value'][1]['value'])
-        db_info[measure_name]['list'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info[measure_name]['list'])
-        db_info[measure_name]['list'] = '<xml>' + ''.join(db_info[measure_name]['list']) + '</xml>'
+        # db_info[measure_name]['list'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info[measure_name]['list'])
+        # db_info[measure_name]['list'] = '<xml>' + ''.join(db_info[measure_name]['list']) + '</xml>'
+        db_info[measure_name]['list'] = map(lambda t: '%s;%f'%(t[0], t[1]), db_info[measure_name]['list'])
+        db_info[measure_name]['list'] = '|'.join(db_info[measure_name]['list'])
         db_info[measure_name]['bad10'] = measure['statistic']['value'][2]['value']
-        db_info[measure_name]['bad10'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info[measure_name]['bad10'])
-        db_info[measure_name]['bad10'] = '<xml>' + ''.join(db_info[measure_name]['bad10']) + '</xml>'
+        # db_info[measure_name]['bad10'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info[measure_name]['bad10'])
+        # db_info[measure_name]['bad10'] = '<xml>' + ''.join(db_info[measure_name]['bad10']) + '</xml>'
+        db_info[measure_name]['bad10'] = map(lambda t: '%s;%f'%(t[0], t[1]), db_info[measure_name]['bad10'])
+        db_info[measure_name]['bad10'] = '|'.join(db_info[measure_name]['bad10'])
 
 
       if task_running_statictic[self.ant_name].has_key('timecostmost'):
@@ -293,9 +339,9 @@ class AntChallenge(AntBase):
         db_info['time']['avg95'] = avg95
         db_info['time']['bad10'] = task_running_statictic[self.ant_name]['timecostmost']['statistic']['value'][1]['value']
         db_info['time']['bad10'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info['time']['bad10'])
-        db_info['time']['bad10'] = '<xml>' + ''.join(db_info['time']['bad10']) + '</xml>'
-      everything_to_html(task_running_statictic, os.path.join(self.ant_dump_dir, now_time))
-      everything_to_db(db_info, os.path.join(self.ant_dump_dir, now_time))
+        db_info['time']['bad10'] = '<xml>' + '|'.join(db_info['time']['bad10']) + '</xml>'
+      everything_to_html(task_running_statictic, os.path.join(self.ant_dump_dir, now_time_stamp))
+      everything_to_db(db_info, os.path.join(self.ant_dump_dir, now_time_stamp))
 
       # compare statistic
       logger.info('start compare process')

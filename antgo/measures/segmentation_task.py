@@ -12,13 +12,14 @@ from antgo.dataflow.common import *
 from antgo.utils.utils import get_sort_index
 import cv2
 import time
+# from antgo.utils.utils import get_sort_index
 
 
-class AntPixelAccuracySeg1(AntMeasure):
+class AntPixelAccuracySeg(AntMeasure):
     def __init__(self, task):
         # paper: Jonathan Long, Evan Shelhamer, etc. Fully Convolutional Networks for Semantic Segmentation
         # formular: \sum_i{n_{ii}}/\sum_i t_i
-        super(AntPixelAccuracySeg1, self).__init__(task, 'PixelAccuracy')
+        super(AntPixelAccuracySeg, self).__init__(task, 'PixelAccuracy')
         assert(task.task_type == 'SEGMENTATION')
 
         self.is_support_rank = True
@@ -53,8 +54,7 @@ class AntPixelAccuracySeg1(AntMeasure):
             val_list.append(single_val)
         val = np.sum(sum_nii) / np.sum(sum_ti)
         # val_index = get_sort_index(val_list)[0:10]
-        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
-                                                           {'name': 'AntPixelAccuracySeg list', 'value': val_list, 'type': 'TABLE'}]}}
+        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'}, {'name': 'AntPixelAccuracySeg list', 'value': val_list, 'type': 'TABLE'}]}}
         # return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
         #                                                    {'name': 'val_list', 'value': val_index, 'type': 'TABLE'}]}}
 
@@ -98,22 +98,21 @@ class AntMeanAccuracySeg(AntMeasure):
             val_list.append(single_val)
         val = np.mean(sum_nii / sum_ti)
         # val_index = get_sort_index(val_list)[0:10]
-        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
-                                                           {'name': 'AntMeanAccuracySeg list', 'value': val_list, 'type': 'TABLE'}]}}
+        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'}, {'name': 'AntMeanAccuracySeg list', 'value': val_list, 'type': 'TABLE'}]}}
 
 
 class AntMeanIOUSeg(AntMeasure):
-  def __init__(self, task):
-    # paper: Jonathan Long, Evan Shelhamer, etc. Fully Convolutional Networks for Semantic Segmentation
-    # formular: (1/n_{cl}) / \sum_i n_{ii}/(t_i+\sum_j n_{ji}-n_{ii})
+    def __init__(self, task):
+        # paper: Jonathan Long, Evan Shelhamer, etc. Fully Convolutional Networks for Semantic Segmentation
+        # formular: (1/n_{cl}) / \sum_i n_{ii}/(t_i+\sum_j n_{ji}-n_{ii})
 
-    super(AntMeanIOUSeg, self).__init__(task, 'MeanIOU')
-    assert(task.task_type == 'SEGMENTATION')
+        super(AntMeanIOUSeg, self).__init__(task, 'MeanIOU')
+        assert(task.task_type == 'SEGMENTATION')
 
-    self.is_support_rank = True
+        self.is_support_rank = True
 
-  def eva(self, data, label):
-    classes_num = len(self.task.class_label)
+    def eva(self, data, label):
+        classes_num = len(self.task.class_label)
 
         sum_nii = np.zeros((1, classes_num))
         sum_ti = np.zeros((1, classes_num))
@@ -147,26 +146,25 @@ class AntMeanIOUSeg(AntMeasure):
 
         val = np.mean(sum_nii / (sum_ti + sum_ji - sum_nii))
         # val_index = get_sort_index(val_list)[0:10]
-        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
-                                                           {'name': 'AntMeanIOUSeg list', 'value': val_list, 'type': 'TABLE'}]}}
+        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'}, {'name': 'AntMeanIOUSeg list', 'value': val_list, 'type': 'TABLE'}]}}
 
 
 class AntFrequencyWeightedIOUSeg(AntMeasure):
-  def __init__(self, task):
-    # paper: Jonathan Long, Evan Shelhamer, etc. Fully Convolutional Networks for Semantic Segmentation
-    # formular: (\sum_kt_k)^{-1} / \sum_i t_in_{ii}/(t_i+\sum_j n_{ji}-n_{ii})
+    def __init__(self, task):
+        # paper: Jonathan Long, Evan Shelhamer, etc. Fully Convolutional Networks for Semantic Segmentation
+        # formular: (\sum_kt_k)^{-1} / \sum_i t_in_{ii}/(t_i+\sum_j n_{ji}-n_{ii})
 
-    super(AntFrequencyWeightedIOUSeg, self).__init__(task, 'FrequencyWeightedIOU')
-    assert(task.task_type == 'SEGMENTATION')
+        super(AntFrequencyWeightedIOUSeg, self).__init__(task, 'FrequencyWeightedIOU')
+        assert(task.task_type == 'SEGMENTATION')
 
-    self.is_support_rank = True
+        self.is_support_rank = True
 
-  def eva(self, data, label):
-    classes_num = len(self.task.class_label)
+    def eva(self, data, label):
+        classes_num = len(self.task.class_label)
 
-    sum_nii = np.zeros((1, classes_num))
-    sum_ti = np.zeros((1, classes_num))
-    sum_ji = np.zeros((1, classes_num))
+        sum_nii = np.zeros((1, classes_num))
+        sum_ti = np.zeros((1, classes_num))
+        sum_ji = np.zeros((1, classes_num))
 
         if label is not None:
             data = zip(data, label)
@@ -196,8 +194,7 @@ class AntFrequencyWeightedIOUSeg(AntMeasure):
 
         val = np.sum(sum_ti * sum_nii / (sum_ti + sum_ji - sum_nii)) / np.sum(sum_ti)
         # val_index = get_sort_index(val_list)[0:10]
-        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
-                                                           {'name': 'AntFrequencyWeightedIOUSeg list', 'value': val_list, 'type': 'TABLE'}]}}
+        return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'}, {'name': 'AntFrequencyWeightedIOUSeg list', 'value': val_list, 'type': 'TABLE'}]}}
 
 
 class AntMeanIOUBoundary(AntMeasure):
@@ -316,14 +313,14 @@ class AntMeanIOUBoundary(AntMeasure):
 # if __name__ == '__main__':
 #     main()
 
-class AntPixelAccuracySeg(AntMeasure):
+class AntHoleEdgeSeg(AntMeasure):
     def __init__(self, task):
         # paper: Jonathan Long, Evan Shelhamer, etc. Fully Convolutional Networks for Semantic Segmentation
         # formular: \sum_i{n_{ii}}/\sum_i t_i
-        super(AntPixelAccuracySeg, self).__init__(task, 'PixelAccuracy')
+        super(AntHoleEdgeSeg, self).__init__(task, 'HoleEdge')
         assert(task.task_type == 'SEGMENTATION')
 
-        self.is_support_rank = True
+        self.is_support_rank = False
 
     def eva(self, data, label):
 
@@ -384,31 +381,34 @@ class AntPixelAccuracySeg(AntMeasure):
             data = zip(data, label)
         hole_list = []
         edge_list = []
+        hole_pic_list = []
+        edge_pic_list = []
+        index = 0
         for pr, gt in data:
-            print('start')
+            # print('start')
             time1 = time.time()
             pr[pr == 1] = 255
             gt[gt == 1] = 255
             time2 = time.time()
-            print('change to 255: ', time2-time1)
+            # print('change to 255: ', time2-time1)
 
             pr3c = cv2.merge([pr, pr, pr])
             gt3c = cv2.merge([gt, gt, gt])
             time3 = time.time()
-            print('merge: ', time3-time2)
+            # print('merge: ', time3-time2)
             # print(pr.shape, pr3c.shape, gt.shape, gt3c.shape)
 
             frame = find_hole(gt, pr)
             time4 = time.time()
-            print('find hole: ', time4-time3)
+            # print('find hole: ', time4-time3)
             hole_error = compute_error_percent(frame)
             time5 = time.time()
-            print('compute hole error: ', time5-time4)
+            # print('compute hole error: ', time5-time4)
             # print 'hole error: ', hole_error
             res = pr3c.copy()
             fill_hole = pr.copy()
             time6 = time.time()
-            print('copy: ', time6-time5)
+            # print('copy: ', time6-time5)
             # print(res.shape, frame.shape)
             # print(frame == 1)
             res[frame == 1, 0] = 255
@@ -416,35 +416,51 @@ class AntPixelAccuracySeg(AntMeasure):
             fill_hole[frame == 1] = 255
             fill_hole[frame == 254] = 0
             time7 = time.time()
-            print('change value: ', time7-time6)
-            cv2.imwrite('ttt.png', res)
-            cv2.imwrite('fillhole.png', fill_hole)
+            # print('change value: ', time7-time6)
+            # cv2.imwrite('ttt.png', res)
+            # cv2.imwrite('fillhole.png', fill_hole)
             time8 = time.time()
-            print('save 2 image: ', time8-time7)
+            # print('save 2 image: ', time8-time7)
 
             edge = find_edge(gt, fill_hole)
             time9 = time.time()
-            print('find edge: ', time9-time8)
+            # print('find edge: ', time9-time8)
             edge_error = compute_error_percent(edge)
             time10 = time.time()
-            print('compute edge error: ', time10-time9)
+            # print('compute edge error: ', time10-time9)
             # print 'edge error', edge_error
             # print 'edge gt', gt
             # print 'fill hole', fill_hole
             # print 'edge', edge
             edge_pr = fill_hole.copy()
             edge_pr = cv2.merge([edge_pr, edge_pr, edge_pr])
-            edge_pr[edge == 1, 0] = 120
-            edge_pr[edge == 254, 1] = 120
-            cv2.imwrite('edge_pr.png', edge_pr)
+            edge_pr[edge == 1, :] = [0, 0, 255]
+            edge_pr[edge == 254, :] = [255, 255, 0]
+            # cv2.imwrite('edge_pr.png', edge_pr)
             hole_list.append(hole_error)
             edge_list.append(edge_error)
             time11 = time.time()
-            print('last other: ', time11-time10)
-        print('hole list: ', hole_list)
-        print('edge list: ', edge_list)
+            # pic_path = '/home/zhaoqike/pic/'
+            # cv2.imwrite(pic_path + 'edge' + str(index) + '.png', edge_pr)
+            # cv2.imwrite(pic_path + 'hole' + str(index) + '.png', res)
+            hole_pic_list.append(res)
+            edge_pic_list.append(edge_pr)
+            # print('last other: ', time11-time10)
+            print('index: ', index)
+            index += 1
+        # print('hole list: ', hole_list)
+        # print('edge list: ', edge_list)
+        # hole_list_bad10_index = get_sort_index(hole_list, reverse=True)[0:10]
+        # edge_list_bad10_index = get_sort_index(edge_list, reverse=True)[0:10]
         return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': 0, 'type':'SCALAR'},
-                                                           {'name': 'AntPixelAccuracySeg list', 'value': hole_list, 'type': 'TABLE'}]}}
+                                                           {'name': 'AntPixelAccuracySeg list', 'value': hole_list, 'type': 'TABLE'},
+                                                           {'name': 'AntPixelAccuracySeg list', 'value': hole_pic_list, 'type': 'TABLE'},
+                                                           {'name': 'AntPixelAccuracySeg list', 'value': edge_list, 'type': 'TABLE'},
+                                                           {'name': 'AntPixelAccuracySeg list', 'value': edge_pic_list, 'type': 'TABLE'},
+                                                           ]}}
+                # {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': 0, 'type':'SCALAR'},
+                #                                            {'name': 'AntPixelAccuracySeg list', 'value': edge_list, 'type': 'TABLE'},
+                #                                            {'name': 'AntPixelAccuracySeg list', 'value': edge_pic_list, 'type': 'TABLE'},]}}]
         # return {'statistic': {'name': self.name, 'value': [{'name': self.name, 'value': val, 'type':'SCALAR'},
         #                                                    {'name': 'val_list', 'value': val_index, 'type': 'TABLE'}]}}
 

@@ -36,7 +36,8 @@ class AntMeasures():
                         AntMeanAccuracySeg(self.task),
                         AntMeanIOUSeg(self.task),
                         AntFrequencyWeightedIOUSeg(self.task),
-                        AntMeanIOUBoundary(self.task)]
+                        AntMeanIOUBoundary(self.task),
+                        AntHoleEdgeSeg(self.task)]
             elif self.task.task_type == 'INSTANCE-SEGMENTATION':
                 return []
             elif self.task.task_type == 'MATTING':

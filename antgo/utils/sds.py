@@ -153,7 +153,7 @@ def everything_to_db(db_info, dump_dir):
     # print(conn)
     # print(cursor)
     sql_command = """
-        INSERT INTO bokeh_test.bokeh_test_tbl
+        INSERT INTO bokeh.bokeh_test_tbl
             (bokeh_test_title,
             model_name,
             task,
@@ -258,7 +258,7 @@ def store_measures_to_db():
 
 
 if __name__ == '__main__':
-    conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd='1',db='bokeh_test',charset='utf8')
+    conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd='1',db='bokeh',charset='utf8')
     cursor=conn.cursor()
 
     print(conn)
