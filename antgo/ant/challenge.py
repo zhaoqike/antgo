@@ -242,45 +242,46 @@ class AntChallenge(AntBase):
         task_running_statictic[self.ant_name]['measure'] = evaluation_measure_result
 
         # add hole and edge error pictures
-        record_generator = record_reader.iterate_read('predict', 'groundtruth')
-        result = AntHoleEdgeSeg(running_ant_task).eva(record_generator, None)
-        hole_list = result['statistic']['value'][1]['value']
-        hole_pic_list = result['statistic']['value'][2]['value']
-        edge_list = result['statistic']['value'][3]['value']
-        edge_pic_list = result['statistic']['value'][4]['value']
-        hole_list_bad10_index = get_sort_index(hole_list, reverse=True)[0:10]
-        edge_list_bad10_index = get_sort_index(edge_list, reverse=True)[0:10]
-        hole_path = os.path.join(os.path.join(self.ant_dump_dir, now_time_stamp), 'inference', 'hole')
-        edge_path = os.path.join(os.path.join(self.ant_dump_dir, now_time_stamp), 'inference', 'edge')
+        if False:
+            record_generator = record_reader.iterate_read('predict', 'groundtruth')
+            result = AntHoleEdgeSeg(running_ant_task).eva(record_generator, None)
+            hole_list = result['statistic']['value'][1]['value']
+            hole_pic_list = result['statistic']['value'][2]['value']
+            edge_list = result['statistic']['value'][3]['value']
+            edge_pic_list = result['statistic']['value'][4]['value']
+            hole_list_bad10_index = get_sort_index(hole_list, reverse=True)[0:10]
+            edge_list_bad10_index = get_sort_index(edge_list, reverse=True)[0:10]
+            hole_path = os.path.join(os.path.join(self.ant_dump_dir, now_time_stamp), 'inference', 'hole')
+            edge_path = os.path.join(os.path.join(self.ant_dump_dir, now_time_stamp), 'inference', 'edge')
 
-        os.makedirs(hole_path)
-        os.makedirs(edge_path)
-        for i in hole_list_bad10_index:
-            pr = record_reader.read(i)[0]
-            pr[pr == 1] = 255
-            pr = cv2.merge([pr, pr, pr])
-            gt = record_reader.read(i)[1]
-            gt[gt == 1] = 255
-            gt = cv2.merge([gt, gt, gt])
-            orig = ant_test_dataset.at(i)[0]
-            all = np.hstack((orig, gt, pr, hole_pic_list[i]))
-            # print(os.path.join(hole_path, 'hole'+str(i)+'.png'))
-            cv2.imwrite(os.path.join(hole_path, 'hole'+str(i)+'.png'), hole_pic_list[i])
-            cv2.imwrite(os.path.join(hole_path, 'orig'+str(i)+'.png'), orig)
-            cv2.imwrite(os.path.join(hole_path, 'all'+str(i)+'.png'), all)
-        for i in edge_list_bad10_index:
-            pr = record_reader.read(i)[0]
-            pr[pr == 1] = 255
-            pr = cv2.merge([pr, pr, pr])
-            gt = record_reader.read(i)[1]
-            gt[gt == 1] = 255
-            gt = cv2.merge([gt, gt, gt])
-            orig = ant_test_dataset.at(i)[0]
-            all = np.hstack((orig, gt, pr, edge_pic_list[i]))
-            # print(os.path.join(edge_path, 'edge'+str(i)+'.png'))
-            cv2.imwrite(os.path.join(edge_path, 'edge'+str(i)+'.png'), edge_pic_list[i])
-            cv2.imwrite(os.path.join(edge_path, 'orig'+str(i)+'.png'), ant_test_dataset.at(i)[0])
-            cv2.imwrite(os.path.join(edge_path, 'all'+str(i)+'.png'), all)
+            os.makedirs(hole_path)
+            os.makedirs(edge_path)
+            for i in hole_list_bad10_index:
+                pr = record_reader.read(i)[0]
+                pr[pr == 1] = 255
+                pr = cv2.merge([pr, pr, pr])
+                gt = record_reader.read(i)[1]
+                gt[gt == 1] = 255
+                gt = cv2.merge([gt, gt, gt])
+                orig = ant_test_dataset.at(i)[0]
+                all = np.hstack((orig, gt, pr, hole_pic_list[i]))
+                # print(os.path.join(hole_path, 'hole'+str(i)+'.png'))
+                cv2.imwrite(os.path.join(hole_path, 'hole'+str(i)+'.png'), hole_pic_list[i])
+                cv2.imwrite(os.path.join(hole_path, 'orig'+str(i)+'.png'), orig)
+                cv2.imwrite(os.path.join(hole_path, 'all'+str(i)+'.png'), all)
+            for i in edge_list_bad10_index:
+                pr = record_reader.read(i)[0]
+                pr[pr == 1] = 255
+                pr = cv2.merge([pr, pr, pr])
+                gt = record_reader.read(i)[1]
+                gt[gt == 1] = 255
+                gt = cv2.merge([gt, gt, gt])
+                orig = ant_test_dataset.at(i)[0]
+                all = np.hstack((orig, gt, pr, edge_pic_list[i]))
+                # print(os.path.join(edge_path, 'edge'+str(i)+'.png'))
+                cv2.imwrite(os.path.join(edge_path, 'edge'+str(i)+'.png'), edge_pic_list[i])
+                cv2.imwrite(os.path.join(edge_path, 'orig'+str(i)+'.png'), ant_test_dataset.at(i)[0])
+                cv2.imwrite(os.path.join(edge_path, 'all'+str(i)+'.png'), all)
 
 
       time_path = os.path.join(os.path.join(self.ant_dump_dir, now_time_stamp), 'inference', 'time.txt')
