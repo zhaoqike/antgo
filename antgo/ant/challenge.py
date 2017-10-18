@@ -17,7 +17,7 @@ from antgo.dataflow.recorder import *
 from antgo.measures.deep_analysis import *
 import shutil
 from antgo.utils.seg_tag import *
-from antgo.utils.sds import *
+# from antgo.utils.sds import *
 import copy
 import json
 import tarfile
@@ -145,13 +145,13 @@ class AntChallenge(AntBase):
       logger.info('start evaluation process')
       evaluation_measure_result = []
 
-      filelist_path = os.path.join(self.ant_data_source, running_ant_task.dataset_name, 'test/filelist.txt')
-      taglist_path = os.path.join(self.ant_data_source, running_ant_task.dataset_name, 'test/taglist.txt')
+      # filelist_path = os.path.join(self.ant_data_source, running_ant_task.dataset_name, 'test/filelist.txt')
+      # taglist_path = os.path.join(self.ant_data_source, running_ant_task.dataset_name, 'test/taglist.txt')
 
-      filelist = open(filelist_path).readlines() if os.path.exists(filelist_path) else None
-      filelist = map(lambda x: os.path.basename(x.strip()), filelist)
-      taglist = open(taglist_path).readlines() if os.path.exists(taglist_path) else None
-      taglist = list(map(lambda x: list(map(lambda y: int(y), x.split(','))), taglist)) if taglist is not None else None
+      # filelist = open(filelist_path).readlines() if os.path.exists(filelist_path) else None
+      # filelist = map(lambda x: os.path.basename(x.strip()), filelist)
+      # taglist = open(taglist_path).readlines() if os.path.exists(taglist_path) else None
+      # taglist = list(map(lambda x: list(map(lambda y: int(y), x.split(','))), taglist)) if taglist is not None else None
 
       def compute_subtag_measures(val_list, tag_list):
         # print(len(val_list), len(tag_list))
@@ -209,7 +209,7 @@ class AntChallenge(AntBase):
           val_list = result['statistic']['value'][1]['value']
           val_index = get_sort_index(val_list)[0:10]
           # result['statistic']['value'][1]['value'] = [[filelist[i], val_list[i]] for i in val_index]
-          result['statistic']['value'].append({'name': result['statistic']['value'][1]['name'] + ' bad 10', 'value': [[filelist[i], val_list[i]] for i in val_index], 'type': 'TABLE'})
+          # result['statistic']['value'].append({'name': result['statistic']['value'][1]['name'] + ' bad 10', 'value': [[filelist[i], val_list[i]] for i in val_index], 'type': 'TABLE'})
           measure_path = os.path.join(os.path.join(self.ant_dump_dir, now_time_stamp), 'inference', measure.name)
           os.makedirs(measure_path)
           for i in val_index:
@@ -234,11 +234,11 @@ class AntChallenge(AntBase):
             result['statistic']['value'][0]['interval'] = confidence_interval
 
           evaluation_measure_result.append(result)
-          if taglist is not None:
-            all_tag_measure = compute_subtag_measures(val_list, taglist)
-            table = tag_measure_to_table(all_tag_measure)
-            all_tag_measure_context = {'name': measure.name + ' subtag list', 'value': table, 'type': 'TABLE'}
-            result['statistic']['value'].append(all_tag_measure_context)
+          # if taglist is not None:
+          #   all_tag_measure = compute_subtag_measures(val_list, taglist)
+          #   table = tag_measure_to_table(all_tag_measure)
+          #   all_tag_measure_context = {'name': measure.name + ' subtag list', 'value': table, 'type': 'TABLE'}
+          #   result['statistic']['value'].append(all_tag_measure_context)
         task_running_statictic[self.ant_name]['measure'] = evaluation_measure_result
 
         # add hole and edge error pictures
@@ -297,7 +297,8 @@ class AntChallenge(AntBase):
         avgt95 = getavgpercent(times, 0.95)
         avgt99 = getavgpercent(times, 0.99)
         values = [{'name': 'time cost info', 'value': [['sum', 'avg', '99%', '95%'], [sumt, avgt, avgt99, avgt95]], 'type': 'TABLE'},
-                  {'name': 'time cost bad 10 list', 'value': [[filelist[i], times[i]] for i in index], 'type': 'TABLE'}]
+                  # {'name': 'time cost bad 10 list', 'value': [[filelist[i], times[i]] for i in index], 'type': 'TABLE'}
+                  ]
         # {'name': 'AntFrequencyWeightedIOUSeg bad 10 list', 'value': [[i, val_list[i]] for i in val_index], 'type': 'TABLE'}
         all_time_statistic = {'statistic':{'name': 'time cost',
                                            'value': values}}
@@ -307,42 +308,42 @@ class AntChallenge(AntBase):
       
       logger.info('generate model evaluation report')
       # performace statistic
-      db_info = {}
-      db_info['test_name'] = self.ant_name
-      db_info['model_name'] = self.ant_context.model_name if hasattr(self.ant_context, 'model_name') else 'model'
-      db_info['task']=os.path.basename(self.ant_task_config)
-      for measure in task_running_statictic[self.ant_name]['measure']:
-        measure_name = measure['statistic']['name']
-        [all, avg, avg99, avg95] = measure['statistic']['value'][0]['value'][1]
-        db_info[measure_name] = {}
-        db_info[measure_name]['all'] = all
-        db_info[measure_name]['avg'] = avg
-        db_info[measure_name]['avg99'] = avg99
-        db_info[measure_name]['avg95'] = avg95
-        db_info[measure_name]['list'] = zip(filelist, measure['statistic']['value'][1]['value'])
-        # db_info[measure_name]['list'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info[measure_name]['list'])
-        # db_info[measure_name]['list'] = '<xml>' + ''.join(db_info[measure_name]['list']) + '</xml>'
-        db_info[measure_name]['list'] = map(lambda t: '%s;%f'%(t[0], t[1]), db_info[measure_name]['list'])
-        db_info[measure_name]['list'] = '|'.join(db_info[measure_name]['list'])
-        db_info[measure_name]['bad10'] = measure['statistic']['value'][2]['value']
-        # db_info[measure_name]['bad10'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info[measure_name]['bad10'])
-        # db_info[measure_name]['bad10'] = '<xml>' + ''.join(db_info[measure_name]['bad10']) + '</xml>'
-        db_info[measure_name]['bad10'] = map(lambda t: '%s;%f'%(t[0], t[1]), db_info[measure_name]['bad10'])
-        db_info[measure_name]['bad10'] = '|'.join(db_info[measure_name]['bad10'])
+      # db_info = {}
+      # db_info['test_name'] = self.ant_name
+      # db_info['model_name'] = self.ant_context.model_name if hasattr(self.ant_context, 'model_name') else 'model'
+      # db_info['task']=os.path.basename(self.ant_task_config)
+      # for measure in task_running_statictic[self.ant_name]['measure']:
+      #   measure_name = measure['statistic']['name']
+      #   [all, avg, avg99, avg95] = measure['statistic']['value'][0]['value'][1]
+      #   db_info[measure_name] = {}
+      #   db_info[measure_name]['all'] = all
+      #   db_info[measure_name]['avg'] = avg
+      #   db_info[measure_name]['avg99'] = avg99
+      #   db_info[measure_name]['avg95'] = avg95
+      #   # db_info[measure_name]['list'] = zip(filelist, measure['statistic']['value'][1]['value'])
+      #   # db_info[measure_name]['list'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info[measure_name]['list'])
+      #   # db_info[measure_name]['list'] = '<xml>' + ''.join(db_info[measure_name]['list']) + '</xml>'
+      #   db_info[measure_name]['list'] = map(lambda t: '%s;%f'%(t[0], t[1]), db_info[measure_name]['list'])
+      #   db_info[measure_name]['list'] = '|'.join(db_info[measure_name]['list'])
+      #   db_info[measure_name]['bad10'] = measure['statistic']['value'][2]['value']
+      #   # db_info[measure_name]['bad10'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info[measure_name]['bad10'])
+      #   # db_info[measure_name]['bad10'] = '<xml>' + ''.join(db_info[measure_name]['bad10']) + '</xml>'
+      #   db_info[measure_name]['bad10'] = map(lambda t: '%s;%f'%(t[0], t[1]), db_info[measure_name]['bad10'])
+      #   db_info[measure_name]['bad10'] = '|'.join(db_info[measure_name]['bad10'])
 
 
-      if task_running_statictic[self.ant_name].has_key('timecostmost'):
-        [sumt, avg, avg99, avg95] = task_running_statictic[self.ant_name]['timecostmost']['statistic']['value'][0]['value'][1]
-        db_info['time'] = {}
-        db_info['time']['sum'] = sumt
-        db_info['time']['avg'] = avg
-        db_info['time']['avg99'] = avg99
-        db_info['time']['avg95'] = avg95
-        db_info['time']['bad10'] = task_running_statictic[self.ant_name]['timecostmost']['statistic']['value'][1]['value']
-        db_info['time']['bad10'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info['time']['bad10'])
-        db_info['time']['bad10'] = '<xml>' + '|'.join(db_info['time']['bad10']) + '</xml>'
+      # if task_running_statictic[self.ant_name].has_key('timecostmost'):
+      #   [sumt, avg, avg99, avg95] = task_running_statictic[self.ant_name]['timecostmost']['statistic']['value'][0]['value'][1]
+      #   db_info['time'] = {}
+      #   db_info['time']['sum'] = sumt
+      #   db_info['time']['avg'] = avg
+      #   db_info['time']['avg99'] = avg99
+      #   db_info['time']['avg95'] = avg95
+      #   db_info['time']['bad10'] = task_running_statictic[self.ant_name]['timecostmost']['statistic']['value'][1]['value']
+      #   db_info['time']['bad10'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info['time']['bad10'])
+      #   db_info['time']['bad10'] = '<xml>' + '|'.join(db_info['time']['bad10']) + '</xml>'
       everything_to_html(task_running_statictic, os.path.join(self.ant_dump_dir, now_time_stamp))
-      everything_to_db(db_info, os.path.join(self.ant_dump_dir, now_time_stamp))
+      # everything_to_db(db_info, os.path.join(self.ant_dump_dir, now_time_stamp))
 
       # compare statistic
       logger.info('start compare process')
