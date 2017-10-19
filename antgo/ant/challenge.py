@@ -205,7 +205,12 @@ class AntChallenge(AntBase):
           avgm = sum(val_list) / len(val_list)
           avgm95 = getavgpercent(val_list, 0.95, reverse=True)
           avgm99 = getavgpercent(val_list, 0.99, reverse=True)
-          result['statistic']['value'][0]['value'] = [['all', 'avg', '99%', '95%'], [all, avgm, avgm99, avgm95]]
+          sorted_val_list = sorted(val_list, reverse=True)
+          worst = sorted_val_list[-1]
+          worst99 = sorted_val_list[int(0.99*len(val_list))]
+          worst95 = sorted_val_list[int(0.95*len(val_list))]
+          result['statistic']['value'][0]['value'] = [['all', 'avg', '99%avg', '95%avg', 'worst', '99%worst', '95%worst'],
+                                                      [round(all, 5), round(avgm, 5), round(avgm99, 5), round(avgm95, 5), round(worst, 5), round(worst99, 5), round(worst95, 5)]]
           val_list = result['statistic']['value'][1]['value']
           val_index = get_sort_index(val_list)[0:10]
           # result['statistic']['value'][1]['value'] = [[filelist[i], val_list[i]] for i in val_index]
@@ -313,7 +318,7 @@ class AntChallenge(AntBase):
       db_info['task']=os.path.basename(self.ant_task_config)
       for measure in task_running_statictic[self.ant_name]['measure']:
         measure_name = measure['statistic']['name']
-        [all, avg, avg99, avg95] = measure['statistic']['value'][0]['value'][1]
+        [all, avg, avg99, avg95, worst, worst99, worst95] = measure['statistic']['value'][0]['value'][1]
         db_info[measure_name] = {}
         db_info[measure_name]['all'] = all
         db_info[measure_name]['avg'] = avg
