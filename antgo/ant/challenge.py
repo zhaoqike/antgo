@@ -206,6 +206,8 @@ class AntChallenge(AntBase):
           avgm95 = getavgpercent(val_list, 0.95, reverse=True)
           avgm99 = getavgpercent(val_list, 0.99, reverse=True)
           sorted_val_list = sorted(val_list, reverse=True)
+          print(measure.name, val_list)
+          print(measure.name, sorted_val_list)
           worst = sorted_val_list[-1]
           worst99 = sorted_val_list[int(0.99*len(val_list))]
           worst95 = sorted_val_list[int(0.95*len(val_list))]
@@ -344,8 +346,8 @@ class AntChallenge(AntBase):
         db_info['time']['avg99'] = avg99
         db_info['time']['avg95'] = avg95
         db_info['time']['bad10'] = task_running_statictic[self.ant_name]['timecostmost']['statistic']['value'][1]['value']
-        db_info['time']['bad10'] = map(lambda t: '<name>%s</name><value>%f</value>'%(t[0], t[1]), db_info['time']['bad10'])
-        db_info['time']['bad10'] = '<xml>' + '|'.join(db_info['time']['bad10']) + '</xml>'
+        db_info['time']['bad10'] = map(lambda t: '%s;%f'%(t[0], t[1]), db_info['time']['bad10'])
+        db_info['time']['bad10'] = '|'.join(db_info['time']['bad10'])
       everything_to_html(task_running_statictic, os.path.join(self.ant_dump_dir, now_time_stamp))
       everything_to_db(db_info, os.path.join(self.ant_dump_dir, now_time_stamp))
 
