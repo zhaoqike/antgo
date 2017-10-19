@@ -92,8 +92,8 @@ def main():
   dataflow_server_host = getattr(Config, 'dataflow_server_host', 'tcp://127.0.0.1:9999')
   dataflow_server_threads = getattr(Config, 'dataflow_server_threads', 1)
 
-  # dfs_daemon = DataflowServerDaemon(int(dataflow_server_threads), dataflow_server_host, 'antgo-data-server.pid')
-  # dfs_daemon.start()
+  dfs_daemon = DataflowServerDaemon(int(dataflow_server_threads), dataflow_server_host, 'antgo-data-server.pid')
+  dfs_daemon.start()
 
   # 3.step parse execute command
   if sys.argv[1].startswith('--') or sys.argv[1].startswith('-'):
