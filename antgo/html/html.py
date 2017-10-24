@@ -87,8 +87,8 @@ def everything_to_html(data, dump_dir, data_source=None):
         everything_statistics.append(ms)
 
     # 4.time info
-        if 'timecostmost' in ant_info:
-            everything_statistics.append(ant_info['timecostmost'])
+    if 'timecostmost' in ant_info:
+      everything_statistics.append(ant_info['timecostmost'])
 
     # 4.step model analysis
     if 'analysis' in ant_info:

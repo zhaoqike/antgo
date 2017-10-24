@@ -348,6 +348,8 @@ class AntChallenge(AntBase):
         db_info['time']['bad10'] = task_running_statictic[self.ant_name]['timecostmost']['statistic']['value'][1]['value']
         db_info['time']['bad10'] = map(lambda t: '%s;%f'%(t[0], t[1]), db_info['time']['bad10'])
         db_info['time']['bad10'] = '|'.join(db_info['time']['bad10'])
+
+      print('everything', task_running_statictic)
       everything_to_html(task_running_statictic, os.path.join(self.ant_dump_dir, now_time_stamp))
       everything_to_db(db_info, os.path.join(self.ant_dump_dir, now_time_stamp))
 

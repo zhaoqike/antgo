@@ -39,8 +39,8 @@ class AntPixelAccuracySeg(AntMeasure):
             gt_labels = set(gt.flatten())
             for l in gt_labels:
                 l = int(l)
-                if l == 0:
-                    continue
+                # if l == 0:
+                #     continue
 
                 p = np.where(gt == l)
                 single_ti[l - 1] += len(p[0])
@@ -83,8 +83,8 @@ class AntMeanAccuracySeg(AntMeasure):
             gt_labels = set(gt.flatten())
             for l in gt_labels:
                 l = int(l)
-                if l == 0:
-                    continue
+                # if l == 0:
+                #     continue
 
                 p = np.where(gt == l)
                 single_ti[l - 1] += len(p[0])
@@ -128,8 +128,8 @@ class AntMeanIOUSeg(AntMeasure):
             single_ji = np.zeros((1, classes_num))
             for l in gt_labels:
                 l = int(l)
-                if l == 0:
-                    continue
+                # if l == 0:
+                #     continue
                 p = np.where(gt == l)
                 single_ti[l - 1] += len(p[0])
                 sum_ti[l - 1] += len(p[0])
@@ -176,8 +176,8 @@ class AntFrequencyWeightedIOUSeg(AntMeasure):
             single_ji = np.zeros((1, classes_num))
             for l in gt_labels:
                 l = int(l)
-                if l == 0:
-                    continue
+                # if l == 0:
+                #     continue
                 p = np.where(gt == l)
                 single_ti[l - 1] += len(p[0])
                 sum_ti[l - 1] += len(p[0])
